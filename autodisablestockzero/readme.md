@@ -45,16 +45,33 @@ Ce module surveille les changements de stock et désactive automatiquement les p
 
 Une fois installé, le module fonctionne automatiquement sans configuration :
 
+**À l'installation** :
+1. Le module scanne tous les produits actifs de votre boutique
+2. Tous les produits avec un stock à 0 sont immédiatement désactivés
+3. Un résumé est enregistré dans les logs
+
+**En continu** :
 1. Lorsque le stock d'un produit atteint 0, le produit est automatiquement désactivé
 2. Le produit n'apparaît plus sur la boutique
 3. L'action est enregistrée dans les logs PrestaShop
-4. Pour réactiver le produit, vous devez :
-   - Ajouter du stock
-   - Réactiver manuellement le produit dans le back-office
+
+**Pour réactiver un produit** :
+1. Ajouter du stock au produit
+2. Réactiver manuellement le produit dans le back-office
 
 ## Fonctionnement technique
 
-Le module utilise le hook `actionUpdateQuantity` qui est déclenché à chaque modification de stock. Lorsqu'une modification survient :
+### À l'installation
+
+Lors de l'installation du module, la méthode `processExistingProducts()` :
+1. Récupère tous les produits actifs de la boutique
+2. Calcule le stock total de chaque produit (toutes combinaisons)
+3. Désactive les produits avec stock ≤ 0
+4. Log un résumé : nombre de produits traités et désactivés
+
+### En continu
+
+Le module utilise le hook `actionUpdateQuantity` qui est déclenché à chaque modification de stock :
 
 1. Le module récupère l'ID du produit concerné
 2. Il calcule le stock total disponible (toutes combinaisons confondues)

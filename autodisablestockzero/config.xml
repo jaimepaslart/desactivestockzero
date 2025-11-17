@@ -2,7 +2,7 @@
 <module>
     <name>autodisablestockzero</name>
     <displayName><![CDATA[Auto Disable Stock Zero]]></displayName>
-    <version><![CDATA[1.0.0]]></version>
+    <version><![CDATA[1.1.0]]></version>
     <description><![CDATA[Automatically disables products when their stock reaches 0.]]></description>
     <author><![CDATA[Paul Bihr]]></author>
     <tab><![CDATA[administration]]></tab>

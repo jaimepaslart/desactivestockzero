@@ -8,7 +8,7 @@
  * @author Paul Bihr
  * @copyright 2025 Paul Bihr
  * @license MIT
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 if (!defined('_PS_VERSION_')) {
@@ -30,7 +30,7 @@ class AutoDisableStockZero extends Module
     {
         $this->name = 'autodisablestockzero';
         $this->tab = 'administration';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'Paul Bihr';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7.0', 'max' => _PS_VERSION_);
@@ -58,6 +58,9 @@ class AutoDisableStockZero extends Module
         if (!$this->registerHook('actionUpdateQuantity')) {
             return false;
         }
+
+        // Process existing products with zero stock on installation
+        $this->processExistingProducts();
 
         // Log successful installation
         PrestaShopLogger::addLog(
@@ -90,6 +93,102 @@ class AutoDisableStockZero extends Module
         );
 
         return parent::uninstall();
+    }
+
+    /**
+     * Process all existing products and disable those with zero stock
+     *
+     * This method is called during module installation to ensure that
+     * all products already in stock zero are disabled immediately.
+     * It scans all active products in the current shop and disables
+     * those with total stock <= 0.
+     *
+     * @return void
+     */
+    private function processExistingProducts()
+    {
+        try {
+            // Get current shop context
+            $idShop = (int) Context::getContext()->shop->id;
+
+            // SQL query to get all active products with their stock
+            // We only select products that are currently active
+            $sql = new DbQuery();
+            $sql->select('p.id_product');
+            $sql->from('product', 'p');
+            $sql->innerJoin(
+                'product_shop',
+                'ps',
+                'p.id_product = ps.id_product AND ps.id_shop = ' . (int) $idShop
+            );
+            $sql->where('ps.active = 1');
+
+            // Execute query
+            $products = Db::getInstance()->executeS($sql);
+
+            if (!$products || !is_array($products)) {
+                PrestaShopLogger::addLog(
+                    sprintf('[%s] No products found to process', $this->name),
+                    1,
+                    null,
+                    'Module',
+                    null,
+                    true
+                );
+                return;
+            }
+
+            $processedCount = 0;
+            $disabledCount = 0;
+
+            // Process each product
+            foreach ($products as $product) {
+                $idProduct = (int) $product['id_product'];
+                $processedCount++;
+
+                // Get total stock for the product (all combinations)
+                $totalQuantity = StockAvailable::getQuantityAvailableByProduct(
+                    $idProduct,
+                    0,
+                    $idShop
+                );
+
+                // If stock is zero or negative, disable the product
+                if ($totalQuantity <= 0) {
+                    $this->disableProduct($idProduct, $idShop, $totalQuantity);
+                    $disabledCount++;
+                }
+            }
+
+            // Log summary
+            PrestaShopLogger::addLog(
+                sprintf(
+                    '[%s] Processed %d existing products, disabled %d products with zero stock',
+                    $this->name,
+                    $processedCount,
+                    $disabledCount
+                ),
+                1,
+                null,
+                'Module',
+                null,
+                true
+            );
+        } catch (Exception $e) {
+            // Log any exception that occurs
+            PrestaShopLogger::addLog(
+                sprintf(
+                    '[%s] Error processing existing products: %s',
+                    $this->name,
+                    $e->getMessage()
+                ),
+                3,
+                $e->getCode(),
+                'Module',
+                null,
+                true
+            );
+        }
     }
 
     /**

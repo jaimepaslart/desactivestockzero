@@ -8,7 +8,8 @@ Ce repository contient un module PrestaShop prêt à l'emploi qui surveille auto
 
 ### Fonctionnalités principales
 
-- ✅ Désactivation automatique des produits en rupture de stock
+- ✅ **Traitement à l'installation** : Désactive tous les produits déjà en stock zéro
+- ✅ **Surveillance continue** : Désactivation automatique des produits qui passent en rupture de stock
 - ✅ Support des produits simples et avec combinaisons
 - ✅ Compatible multistore (respecte le contexte de la boutique)
 - ✅ Logging complet dans les logs PrestaShop
@@ -17,7 +18,9 @@ Ce repository contient un module PrestaShop prêt à l'emploi qui surveille auto
 
 ### Comportement
 
-**Désactivation** : Lorsque le stock total d'un produit atteint 0, le produit est automatiquement désactivé.
+**À l'installation** : Le module scanne tous les produits actifs et désactive immédiatement ceux qui ont un stock à 0.
+
+**Désactivation continue** : Lorsque le stock total d'un produit atteint 0, le produit est automatiquement désactivé.
 
 **Réactivation** : Le module NE réactive PAS automatiquement les produits lorsque du stock est ajouté. Cela reste une action manuelle du marchand pour éviter toute réactivation non souhaitée.
 
@@ -79,20 +82,31 @@ desactivestockzero/
 
 Le module fonctionne automatiquement une fois installé :
 
-1. **Surveillance automatique** : Le module surveille tous les changements de stock
-2. **Désactivation** : Quand un produit atteint un stock de 0, il est désactivé automatiquement
-3. **Logs** : Toutes les actions sont enregistrées dans les logs PrestaShop
-4. **Réactivation manuelle** : Pour réactiver un produit, ajoutez du stock puis activez-le manuellement
+1. **Traitement initial** : À l'installation, tous les produits actifs avec stock = 0 sont désactivés
+2. **Surveillance automatique** : Le module surveille tous les changements de stock
+3. **Désactivation** : Quand un produit atteint un stock de 0, il est désactivé automatiquement
+4. **Logs** : Toutes les actions sont enregistrées dans les logs PrestaShop
+5. **Réactivation manuelle** : Pour réactiver un produit, ajoutez du stock puis activez-le manuellement
 
 ## Technique
 
-### Hook utilisé
+### Hooks et méthodes
 
+**À l'installation** :
+- `processExistingProducts()` : Scanne et désactive tous les produits actifs avec stock = 0
+
+**En continu** :
 - `actionUpdateQuantity` : Déclenché à chaque modification de stock
 
 ### Logique de désactivation
 
 ```php
+Installation :
+1. Récupération de tous les produits actifs
+2. Pour chaque produit, calcul du stock total
+3. Si stock <= 0 : désactivation
+
+En continu :
 1. Récupération de l'ID produit
 2. Calcul du stock total (toutes combinaisons)
 3. Si stock <= 0 :
