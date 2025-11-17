@@ -8,7 +8,7 @@
  * @author Paul Bihr
  * @copyright 2025 Paul Bihr
  * @license MIT
- * @version 1.2.0
+ * @version 1.2.1
  */
 
 if (!defined('_PS_VERSION_')) {
@@ -30,7 +30,7 @@ class AutoDisableStockZero extends Module
     {
         $this->name = 'autodisablestockzero';
         $this->tab = 'administration';
-        $this->version = '1.2.0';
+        $this->version = '1.2.1';
         $this->author = 'Paul Bihr';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7.0', 'max' => _PS_VERSION_);
@@ -368,17 +368,17 @@ class AutoDisableStockZero extends Module
     private function clearCache()
     {
         try {
-            // Clear Smarty cache
+            // Clear Smarty cache (templates and compiled templates)
             Tools::clearSmartyCache();
 
             // Clear XML cache
             Tools::clearXMLCache();
 
-            // Clear compiled Smarty templates
-            Tools::clearCompiledSmartyCache();
-
-            // Clear cache directory
+            // Clear general cache directory
             Tools::clearCache();
+
+            // Additionally clear specific cache directories
+            $this->clearCacheDirectories();
 
             // Log cache clearing
             PrestaShopLogger::addLog(
@@ -404,6 +404,63 @@ class AutoDisableStockZero extends Module
                 null,
                 true
             );
+        }
+    }
+
+    /**
+     * Clear specific cache directories for better compatibility
+     *
+     * @return void
+     */
+    private function clearCacheDirectories()
+    {
+        try {
+            // Clear class index cache
+            if (file_exists(_PS_CACHE_DIR_ . 'class_index.php')) {
+                @unlink(_PS_CACHE_DIR_ . 'class_index.php');
+            }
+
+            // Clear Smarty compile directory
+            $smartyCompileDir = _PS_CACHE_DIR_ . 'smarty/compile/';
+            if (is_dir($smartyCompileDir)) {
+                $this->recursiveDelete($smartyCompileDir, false);
+            }
+
+            // Clear Smarty cache directory
+            $smartyCacheDir = _PS_CACHE_DIR_ . 'smarty/cache/';
+            if (is_dir($smartyCacheDir)) {
+                $this->recursiveDelete($smartyCacheDir, false);
+            }
+        } catch (Exception $e) {
+            // Silently fail - cache clearing is not critical
+        }
+    }
+
+    /**
+     * Recursively delete directory contents
+     *
+     * @param string $dir Directory path
+     * @param bool $deleteDir Delete the directory itself
+     * @return void
+     */
+    private function recursiveDelete($dir, $deleteDir = true)
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), array('.', '..'));
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->recursiveDelete($path, true);
+            } else {
+                @unlink($path);
+            }
+        }
+
+        if ($deleteDir) {
+            @rmdir($dir);
         }
     }
 }
