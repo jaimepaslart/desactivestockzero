@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# PrestaShop
+config/settings.inc.php
+config/xml/*.xml
+cache/
+log/
+img/tmp/
+var/cache/
+var/logs/
+download/
+
+# Composer
+vendor/
+composer.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Module ZIP for distribution
+*.zip
