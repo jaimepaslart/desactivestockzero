@@ -8,7 +8,7 @@ Ce repository contient un module PrestaShop prêt à l'emploi qui surveille auto
 
 ### Fonctionnalités principales
 
-- ✅ **Traitement à l'installation** : Désactive tous les produits déjà en stock zéro
+- ✅ **Traitement à l'installation** : Désactive tous les produits déjà en stock zéro + vidage automatique du cache
 - ✅ **Surveillance continue** : Désactivation automatique des produits qui passent en rupture de stock
 - ✅ Support des produits simples et avec combinaisons
 - ✅ Compatible multistore (respecte le contexte de la boutique)
@@ -18,7 +18,7 @@ Ce repository contient un module PrestaShop prêt à l'emploi qui surveille auto
 
 ### Comportement
 
-**À l'installation** : Le module scanne tous les produits actifs et désactive immédiatement ceux qui ont un stock à 0.
+**À l'installation** : Le module scanne tous les produits actifs, désactive immédiatement ceux qui ont un stock à 0, et vide le cache pour une prise d'effet instantanée.
 
 **Désactivation continue** : Lorsque le stock total d'un produit atteint 0, le produit est automatiquement désactivé.
 
@@ -94,6 +94,7 @@ Le module fonctionne automatiquement une fois installé :
 
 **À l'installation** :
 - `processExistingProducts()` : Scanne et désactive tous les produits actifs avec stock = 0
+- `clearCache()` : Vide le cache PrestaShop pour prise d'effet immédiate
 
 **En continu** :
 - `actionUpdateQuantity` : Déclenché à chaque modification de stock
@@ -105,6 +106,7 @@ Installation :
 1. Récupération de tous les produits actifs
 2. Pour chaque produit, calcul du stock total
 3. Si stock <= 0 : désactivation
+4. Vidage automatique du cache PrestaShop
 
 En continu :
 1. Récupération de l'ID produit

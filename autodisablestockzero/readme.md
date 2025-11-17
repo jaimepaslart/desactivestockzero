@@ -48,7 +48,8 @@ Une fois installé, le module fonctionne automatiquement sans configuration :
 **À l'installation** :
 1. Le module scanne tous les produits actifs de votre boutique
 2. Tous les produits avec un stock à 0 sont immédiatement désactivés
-3. Un résumé est enregistré dans les logs
+3. Le cache PrestaShop est automatiquement vidé
+4. Un résumé est enregistré dans les logs
 
 **En continu** :
 1. Lorsque le stock d'un produit atteint 0, le produit est automatiquement désactivé
@@ -67,7 +68,8 @@ Lors de l'installation du module, la méthode `processExistingProducts()` :
 1. Récupère tous les produits actifs de la boutique
 2. Calcule le stock total de chaque produit (toutes combinaisons)
 3. Désactive les produits avec stock ≤ 0
-4. Log un résumé : nombre de produits traités et désactivés
+4. Vide automatiquement le cache PrestaShop (Smarty, XML, etc.)
+5. Log un résumé : nombre de produits traités et désactivés
 
 ### En continu
 

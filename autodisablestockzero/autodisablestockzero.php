@@ -8,7 +8,7 @@
  * @author Paul Bihr
  * @copyright 2025 Paul Bihr
  * @license MIT
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 if (!defined('_PS_VERSION_')) {
@@ -30,7 +30,7 @@ class AutoDisableStockZero extends Module
     {
         $this->name = 'autodisablestockzero';
         $this->tab = 'administration';
-        $this->version = '1.1.0';
+        $this->version = '1.2.0';
         $this->author = 'Paul Bihr';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.7.0', 'max' => _PS_VERSION_);
@@ -174,6 +174,11 @@ class AutoDisableStockZero extends Module
                 null,
                 true
             );
+
+            // Clear cache to ensure disabled products are immediately hidden from front-office
+            if ($disabledCount > 0) {
+                $this->clearCache();
+            }
         } catch (Exception $e) {
             // Log any exception that occurs
             PrestaShopLogger::addLog(
@@ -346,6 +351,57 @@ class AutoDisableStockZero extends Module
                 $e->getCode(),
                 'Product',
                 $idProduct,
+                true
+            );
+        }
+    }
+
+    /**
+     * Clear PrestaShop cache to ensure changes are immediately visible
+     *
+     * This method clears various caches including Smarty templates,
+     * XML files, and page cache to ensure that disabled products
+     * are immediately hidden from the front-office.
+     *
+     * @return void
+     */
+    private function clearCache()
+    {
+        try {
+            // Clear Smarty cache
+            Tools::clearSmartyCache();
+
+            // Clear XML cache
+            Tools::clearXMLCache();
+
+            // Clear compiled Smarty templates
+            Tools::clearCompiledSmartyCache();
+
+            // Clear cache directory
+            Tools::clearCache();
+
+            // Log cache clearing
+            PrestaShopLogger::addLog(
+                sprintf('[%s] Cache cleared successfully', $this->name),
+                1,
+                null,
+                'Module',
+                null,
+                true
+            );
+        } catch (Exception $e) {
+            // Log any exception during cache clearing
+            // Don't fail the installation if cache clearing fails
+            PrestaShopLogger::addLog(
+                sprintf(
+                    '[%s] Error clearing cache: %s',
+                    $this->name,
+                    $e->getMessage()
+                ),
+                2,
+                $e->getCode(),
+                'Module',
+                null,
                 true
             );
         }
